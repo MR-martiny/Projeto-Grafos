@@ -1,4 +1,6 @@
-//NOME: Gabriela Aparecida Silva Caetano 202110681
+//  Gabriela Aparecida Silva Cetano - 202110681
+//  João Augusto Dias Neto - 202110228
+//  Mathias Silva Sousa - 201920352
 
 #include <iostream>
 #include <cstring>
@@ -32,40 +34,64 @@ bool b_direcionado;
 string direcionado;
 
 void leitura_direcionado() {
+    // Itera sobre o número de arestas do grafo
     for (int i = 0; i < n_arestas; ++i) {
         int id, a, b, p;
-        cin >> id >> a >> b >> p;
+        cin >> id >> a >> b >> p;  // Lê os valores de entrada: id da aresta, vértice de origem, vértice de destino e peso
+
+        // Adiciona a aresta na lista de adjacências do grafo direcionado
         lista_adj[a].push_back({b, {p, id}});
+
+        // Adiciona a aresta no grafo associado, que é não direcionado (armazena em ambos os sentidos)
         grafo_associado[a].push_back({b, {p, id}});
         grafo_associado[b].push_back({a, {p, id}});
+
+        // Adiciona a aresta na lista de adjacências do grafo reverso (para algoritmos que precisem do grafo transposto)
         lista_adj_rev[b].push_back({a, {p, id}});
+
+        // Define a capacidade da aresta no grafo direcionado (para uso em fluxos, por exemplo)
         capacidade[a][b] = p;
     } 
 }
+
 
 void leitura_nao_direcionado() {
     for (int i = 0; i < n_arestas; ++i) {
         int id, a, b, p;
         cin >> id >> a >> b >> p;
+        
+        // Adiciona a aresta nas duas direções na lista de adjacência, pois o grafo não é direcionado.
         lista_adj[a].push_back({b, {p, id}});
         lista_adj[b].push_back({a, {p, id}});
+        
+        // Armazena a aresta no grafo associado, em ambos os sentidos.
         grafo_associado[a].push_back({b, {p, id}});
         grafo_associado[b].push_back({a, {p, id}});
+        
+        // Adiciona a aresta na lista de arestas (edgeList) com seus vértices e peso.
         edgeList.push_back(make_pair(p, pair<int, int>(a, b)));
     } 
 }
 
+
 void dfs(int u, bool print) {
+    // Marca o vértice 'u' como visitado.
     visitado[u] = 1;
+    
+    // Itera sobre todos os vértices adjacentes ao vértice 'u' no grafo associado.
     for (auto &v: grafo_associado[u]) {
+        // Se o vértice 'v' ainda não foi visitado, prossegue com a busca em profundidade.
         if (!visitado[v.first]) {
+            // Se a flag 'print' estiver ativada, imprime o vértice 'v'.
             if (print) {
                 cout << v.first << " ";
-            } 
+            }
+            // Chama recursivamente a função DFS para o vértice 'v'.
             dfs(v.first, print);
         }
     }
 }
+
 
 
 bool conexo() {
@@ -211,43 +237,75 @@ void dfs(int u) {
 }
 
 void kosaraju() {
+    // Redimensiona os vetores 'comp' e 'vis' para o número de vértices.
     comp.resize(n_vertices);
     vis.resize(n_vertices);
+    
+    // Inicializa o vetor 'vis' com 0 (não visitado).
     fill(vis.begin(), vis.end(), 0);
-    for(int i = 0; i < n_vertices; i++)  {
-        if(!vis[i]) revdfs(i);
+    
+    // Realiza a primeira etapa de Kosaraju: DFS no grafo original para preencher a ordem de finalização dos vértices.
+    for (int i = 0; i < n_vertices; i++) {
+        if (!vis[i]) {
+            revdfs(i);
+        }
     }
+    
+    // Reinicializa o vetor 'vis' para a segunda etapa.
     fill(vis.begin(), vis.end(), 0);
+    
+    // Inicializa o contador de componentes fortemente conexos (SCC).
     numSCC = 0;
-    for(int i = n_vertices-1; i >= 0; i--) {
-        if(!vis[ts[i]]) {
+    
+    // Realiza a segunda etapa de Kosaraju: DFS no grafo transposto (invertido) na ordem de finalização dos vértices.
+    for (int i = n_vertices - 1; i >= 0; i--) {
+        if (!vis[ts[i]]) {
             parent = ts[i];
             dfs(ts[i]);
-            numSCC++;
+            numSCC++; // Incrementa o contador de SCCs.
         }
     }
 }
+
 
 int counter, rootChildren, root, temArticulacao;
 vector<int> num, low, parente, articulationVertex;
 int pontes;
 
 void tarjan(int u) {
-	low[u] = num[u] = counter++;
-	for (int j = 0, v; j < (int)lista_adj[u].size(); j++) {
-		v = lista_adj[u][j].first;
-		if (num[v] == NAO_VISITADO) {
-			parente[v] = u;
-			if (u == root) rootChildren++;
-			tarjan(v);
-			if (low[v] >= num[u]) articulationVertex[u] = true;
-			if (low[v] > num[u]) pontes++;
-			low[u] = min(low[u], low[v]);
-		}
-		else if (v != parente[u])
-			low[u] = min(low[u], num[v]);
-	}
+    // Inicializa 'low[u]' e 'num[u]' com o valor do contador e incrementa o contador.
+    low[u] = num[u] = counter++;
+    
+    // Itera sobre todos os vértices adjacentes a 'u'.
+    for (int j = 0, v; j < (int)lista_adj[u].size(); j++) {
+        v = lista_adj[u][j].first;
+        
+        // Se 'v' ainda não foi visitado.
+        if (num[v] == NAO_VISITADO) {
+            // Define 'u' como pai de 'v'.
+            parente[v] = u;
+            if (u == root) rootChildren++; // Conta filhos do root.
+            
+            // Chama a função recursivamente para 'v'.
+            tarjan(v);
+            
+            // Se o menor número de 'v' não é menor que o número de 'u', 'u' é um ponto de articulação.
+            if (low[v] >= num[u]) articulationVertex[u] = true;
+            
+            // Se o menor número de 'v' é maior que o número de 'u', incrementa o contador de pontes.
+            if (low[v] > num[u]) pontes++;
+            
+            // Atualiza 'low[u]' com o menor valor entre 'low[u]' e 'low[v]'.
+            low[u] = min(low[u], low[v]);
+        }
+        // Se 'v' já foi visitado e não é o pai de 'u'.
+        else if (v != parente[u]) {
+            // Atualiza 'low[u]' com o menor valor entre 'low[u]' e 'num[v]'.
+            low[u] = min(low[u], num[v]);
+        }
+    }
 }
+
 
 int qtd_articulacoes;
 
