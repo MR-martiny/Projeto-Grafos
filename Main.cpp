@@ -17,6 +17,8 @@ typedef vector<vector<pair<int, pair<int, int>>>> grafo;
 
 grafo lista_adj, grafo_associado, lista_adj_rev;
 
+vector<vector<int>> capacidade;
+
 vector< pair<long long, pair<int, int>> > edgeList;
 
 vector<int> funcoes, visitado;
@@ -35,6 +37,7 @@ void leitura_direcionado() {
         grafo_associado[a].push_back({b, {p, id}});
         grafo_associado[b].push_back({a, {p, id}});
         lista_adj_rev[b].push_back({a, {p, id}});
+        capacidade[a][b] = p;
     } 
 }
 
@@ -405,61 +408,52 @@ int dijkstra(int s, int t) {
 }
 
 
-// vector<int> adjU[MAXN];
-// int pairU[MAXN], pairV[MAXN], dist[MAXN];
-// int m, n;
-// //Vertices enumerados de 1 a m em U e de 1 a n em V!!!!
+// vector<vector<int>> capacidade;
 
-// bool bfs() {
-// 	queue<int> q;
-// 	for (int u = 1; u <= m; u++) {
-// 		if (pairU[u] == 0) {
-// 			dist[u] = 0; q.push(u);
-// 		}
-// 		else dist[u] = INF;
-// 	}
-// 	dist[0] = INF;
-// 	while (!q.empty()) {
-// 		int u = q.front(); q.pop();
-// 		if (dist[u] >= dist[0]) continue;
-// 		for (int i = 0; i < (int)adjU[u].size(); i++) {
-// 			int v = adjU[u][i];
-// 			if (dist[pairV[v]] == INF) {
-// 				dist[pairV[v]] = dist[u] + 1;
-// 				q.push(pairV[v]);
-// 			}
-// 		}
-// 	}
-// 	return (dist[0] != INF);
-// }
+int bfs(int s, int t, vector<int>& parent) {
+    fill(parent.begin(), parent.end(), -1);
+    parent[s] = -2;
+    queue<pair<int, int>> q;
+    q.push({s, INF});
 
-// bool dfs_flow(int u) {
-// 	if (u == 0) return true;
-// 	for (int i = 0; i < (int)adjU[u].size(); i++) {
-// 		int v = adjU[u][i];
-// 		if (dist[pairV[v]] == dist[u]+1) {
-// 			if (dfs_flow(pairV[v])) {
-// 				pairV[v] = u; pairU[u] = v;
-// 				return true;
-// 			}
-// 		}
-// 	}
-// 	dist[u] = INF;
-// 	return false;
-// }
+    while (!q.empty()) {
+        int atual = q.front().first;
+        int fluxo = q.front().second;
+        q.pop();
 
-// int hopcroftKarp() {
-// 	memset(&pairU, 0, sizeof pairU);
-// 	memset(&pairV, 0, sizeof pairV);
-// 	int result = 0;
-// 	while (bfs()) {
-// 		for (int u=1; u<=m; u++) {
-// 			if (pairU[u]==0 && dfs(u))
-// 				result++;
-// 		}
-// 	}
-// 	return result;
-// }
+        for (auto vertice : lista_adj[atual]) {
+            int prox = vertice.first;
+            if (parent[prox] == -1 && capacidade[atual][prox]) {
+                parent[prox] = atual;
+                int novo_fluxo = min(fluxo, capacidade[atual][prox]);
+                if (prox == t)
+                    return novo_fluxo;
+                q.push({prox, novo_fluxo});
+            }
+        }
+    }
+
+    return 0;
+}
+
+int maxflow(int s, int t) {
+    int fluxo = 0;
+    vector<int> parent(n_vertices);
+    int novo_fluxo;
+
+    while (novo_fluxo = bfs(s, t, parent)) {
+        fluxo += novo_fluxo;
+        int atual = t;
+        while (atual != s) {
+            int anterior = parent[atual];
+            capacidade[anterior][atual] -= novo_fluxo;
+            capacidade[atual][anterior] += novo_fluxo;
+            atual = anterior;
+        }
+    }
+
+    return fluxo;
+}
 
 void fecho() {
     visitado.assign(n_vertices, 0);
@@ -481,7 +475,10 @@ int main () {
 
     cin >> n_vertices >> n_arestas;
     cin >> direcionado;
-
+    capacidade.resize(n_vertices);
+    for (int i = 0; i < n_vertices; ++i) {
+        capacidade[i].assign(n_vertices, 0);
+    }
     lista_adj.resize(n_vertices);
     grafo_associado.resize(n_vertices);
     visitado.resize(n_vertices);
@@ -505,8 +502,8 @@ int main () {
     for (int i = 0; i < n_vertices; ++i) sort(lista_adj[i].begin(), lista_adj[i].end());
 
     for (int i = 0; i < funcoes.size(); ++i) {
-        cout << "f: " <<  funcoes[i] << endl; //apagar futuramente
-        //funcoes indexadas em 1, assim como no PDF
+        // cout << "f: " <<  funcoes[i] << endl; //apagar futuramente
+        //funcoes indexadas em 0, assim como nos casos
         switch (funcoes[i])
         {
             case 0:
@@ -577,9 +574,17 @@ int main () {
                 cout << dijkstra(0, n_vertices-1) << endl;
                 break;
             case 13:
-                cout << -1 << endl;
+                if (!b_direcionado) {
+                    cout << -1 << endl;
+                    break;
+                }
+                cout << maxflow(0, n_vertices-1) << endl;
                 break;
             case 14:
+                if (!b_direcionado) {
+                    cout << -1 << endl;
+                    break;
+                }
                 fecho();
                 break;
             default:
