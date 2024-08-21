@@ -142,27 +142,28 @@ bool bipartido() {
 //para grafo nao direcionado, basta checar se todos os vertices possuem grau par
 // para direcionado, grau de entrada (indeg) deve ser igual ao grau de saida (outdeg)
 // retorna 1 caso seja euleriano, 0 caso contrario
-bool euleriano() {
-    if (!conexo()) return false;
-    if (!b_direcionado) {
+bool euleriano(){
+    if (!conexo()) return false; // verifica se o grafo é conexo, se não for conexo, não tem como ser eureliano
+    if (!b_direcionado) /* Se o grafo for não direcionado */{
         for (int i = 0; i < n_vertices; ++i) {
-            if (lista_adj[i].size() % 2 != 0) return false;
+            if (lista_adj[i].size() % 2 != 0) return false; //Verifica o grau de cada vértice, para um grafo ser eureliano, todos os vértices devem ter grau par. Se qualquer vértice tiver um grau ímpar, retorna false
         }
         return true;
     }
-    vector<int> indeg(n_vertices, 0), outdeg(n_vertices, 0);
+    //Se o grafo for direcionado
+    vector<int> indeg(n_vertices, 0), outdeg(n_vertices, 0); ////Inicializa os vetores para graus de Entrada e Saída de cada vértice
     
     for (int i = 0; i < n_vertices; ++i) {
         
-        outdeg[i] = lista_adj[i].size();
+        outdeg[i] = lista_adj[i].size(); ////outdeg[i] é  o tamanho da lista de adjacências de i, o que representa o grau de saída do vértice i
         for (int j = 0; j < lista_adj[i].size(); ++j) {
             int v = lista_adj[i][j].first;
-            indeg[v]++;
+            indeg[v]++; //Percorre a lista de adjacências de cada vértice i. Para cada vértice adjacente v, o grau de entrada de v (indeg[v]) é incrementado.
         }
         
     }
-    for (int i = 0; i < n_vertices; ++i) {
-        if (indeg[i] != outdeg[i]) return false;
+    for (int i = 0; i < n_vertices; ++i) /*Verificação dos graus de entrada e saída*/ {
+        if (indeg[i] != outdeg[i]) return false; //Para um grafo direcionado ser euleriano, o grau de entrada deve ser igual ao grau de saída para todos os vértices. 
     }
     return true;
 }
