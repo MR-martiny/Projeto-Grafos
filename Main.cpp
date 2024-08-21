@@ -93,12 +93,12 @@ void dfs(int u, bool print) {
 }
 
 
-
+//Função para ver se o grafo é conexo (todos os vértices estão conectados)
 bool conexo() {
-    visitado.resize(n_vertices, 0);
-    dfs(0, false);
+    visitado.resize(n_vertices, 0); // inicializando o vetor visitado, ele é redimensionado para ter o mesmo tamanho do número de vértices (n_vertices) do grafo
+    dfs(0, false); //inicia uma busca em profundidade a partir do vértice '0'
     for (int i = 1; i < n_vertices; ++i) {
-        if (!visitado[i]) return false;
+        if (!visitado[i]) return false; // após realizar a DFS, a função verifica se todos os vértices foram visitados. Se encontrar algum vértice que não foi visitado, retorna false, indicando que o grafo não é conexo.
     }
     return true;
 }
