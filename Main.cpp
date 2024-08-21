@@ -311,216 +311,336 @@ void tarjan(int u) {
 int qtd_articulacoes;
 
 int articulacoes(int print) {
+    // Inicializa os contadores e variáveis necessárias
     counter = 0;
     qtd_articulacoes = 0;
-    num.resize(n_vertices, NAO_VISITADO);
-    low.resize(n_vertices, 0);
-    parente.resize(n_vertices, 0);
-    articulationVertex.resize(n_vertices, 0);
-    for (int i = 0; i < n_vertices; i++)
-		if (num[i] == NAO_VISITADO) {
-			root = i; rootChildren = 0; tarjan(i);
-			articulationVertex[root] = (rootChildren >= 1);
-		}
+    
+    // Redimensiona os vetores para o número de vértices do grafo
+    num.resize(n_vertices, NAO_VISITADO);       // Vetor para armazenar o número de visitação de cada vértice (todos inicialmente não visitados)
+    low.resize(n_vertices, 0);                  // Vetor para armazenar o menor número de visita alcançável a partir de um vértice
+    parente.resize(n_vertices, 0);              // Vetor para armazenar o pai de cada vértice na árvore de DFS
+    articulationVertex.resize(n_vertices, 0);   // Vetor para marcar quais vértices são pontos de articulação (articulation points)
+    
+    // Itera sobre todos os vértices do grafo
+    for (int i = 0; i < n_vertices; i++) {
+        if (num[i] == NAO_VISITADO) {            // Se o vértice ainda não foi visitado
+            root = i;                            // Define o vértice atual como a raiz da árvore DFS
+            rootChildren = 0;                    // Inicializa o contador de filhos da raiz
+            tarjan(i);                           // Chama a função Tarjan para processar o vértice
+            
+            // Verifica se a raiz é um ponto de articulação
+            articulationVertex[root] = (rootChildren >= 1);
+        }
+    }
+
+    // Se a função foi chamada com print != 0, imprime os pontos de articulação
     if (print) {
-        for (int i = 0; i < n_vertices; ++i) if (articulationVertex[i]) qtd_articulacoes++;
+        // Conta quantos pontos de articulação existem
+        for (int i = 0; i < n_vertices; ++i) {
+            if (articulationVertex[i]) {
+                qtd_articulacoes++;
+            }
+        }
+
+        // Se houver pelo menos um ponto de articulação, imprime-os
         if (qtd_articulacoes) {
             for (int i = 0; i < n_vertices; ++i) {
                 if (articulationVertex[i]) {
-                    cout << i << ' ';
+                    cout << i << ' ';  // Imprime o índice do ponto de articulação
                 }
             }
             cout << endl;
+        } else {
+            cout << -1 << endl;  // Se não houver pontos de articulação, imprime -1
         }
-        else cout << -1 << endl;
-
     }
+
+    // Retorna a quantidade de pontes no grafo (ou outro valor dependendo da implementação)
     return pontes;
 }
 
+
 void dfs_tree(int u) {
-    visitado[u] = 1;
+    visitado[u] = 1;  // Marca o vértice atual 'u' como visitado
+
+    // Itera sobre a lista de adjacência do vértice 'u'
     for (auto &v: lista_adj[u]) {
-        if (!visitado[v.first]) {
-            cout << v.second.second << " ";
-            dfs_tree(v.first) ;
+        if (!visitado[v.first]) {  // Se o vértice 'v.first' não foi visitado
+            cout << v.second.second << " ";  // Imprime o segundo valor associado à aresta (presumivelmente uma etiqueta ou peso)
+            dfs_tree(v.first);  // Chama recursivamente a função DFS para explorar o vértice 'v.first'
         }
     }
 }
 
+
 void arvore_dfs() {
+    // Inicializa o vetor 'visitado' com zeros, marcando todos os vértices como não visitados
     fill(visitado.begin(), visitado.end(), 0);
+    
+    // Inicia a busca em profundidade (DFS) a partir do vértice 0
     dfs_tree(0);
+    
+    // Imprime uma nova linha após a execução da DFS
     cout << endl;
 }
 
+
 void bfs_tree() {
+    // Inicializa o vetor 'visitado' com -1, marcando todos os vértices como não visitados
     vector<int> visitado(n_vertices, -1);
+    
+    // Cria uma fila para o BFS e insere o vértice de origem (src = 0)
     queue<int> q;
     int src = 0;
     q.push(src);
-    visitado[src] = 0;
-    //BFS
+    visitado[src] = 0;  // Marca o vértice de origem como visitado
+    
+    // Início do loop BFS (Busca em Largura)
     while (!q.empty()) {
-        int v = q.front();
-        q.pop();
+        int v = q.front();  // Obtém o vértice na frente da fila
+        q.pop();  // Remove o vértice da fila
+        
+        // Itera sobre os vizinhos do vértice 'v'
         for (auto p : lista_adj[v]) {
-            int u = p.first;
-            if (visitado[u] == -1) {
-                visitado[u] = visitado[v] + 1;
-                cout << p.second.second << " ";
-                q.push(u);
+            int u = p.first;  // Obtém o vértice adjacente
+            
+            if (visitado[u] == -1) {  // Se o vértice adjacente não foi visitado
+                visitado[u] = visitado[v] + 1;  // Marca o vértice 'u' como visitado e define a distância a partir da origem
+                cout << p.second.second << " ";  // Imprime o segundo valor associado à aresta (presumivelmente uma etiqueta ou peso)
+                q.push(u);  // Adiciona o vértice 'u' na fila para continuar a BFS
             } 
         }
     }
-    cout << endl;
     
+    // Imprime uma nova linha após a execução do BFS
+    cout << endl;
 }
+
 
 class UnionFind {
 private:
-	vector<int> parent, rank;
+    vector<int> parent, rank;  // Vetores para armazenar o pai de cada elemento e a "altura" das árvores
+
 public:
-	UnionFind(int N) {
-		rank.assign(N+9, 0);
-		parent.assign(N+9, 0);
-		for (int i = 0; i < N; i++) parent[i] = i;
-	}
-	int find(int i) {
-		while(i != parent[i]) i = parent[i];
-		return i;
-	}
-	bool isSameSet(int i, int j) {
-		return find(i) == find(j);
-	}
-	void unionSet (int i, int j) {
-		if (isSameSet(i, j)) return;
-		int x = find(i), y = find(j);
-		if (rank[x] > rank[y]) parent[y] = x;
-		else {
-			parent[x] = y;
-			if (rank[x] == rank[y]) rank[y]++;
-		}
-	}
+    // Construtor que inicializa o Union-Find para 'N' elementos
+    UnionFind(int N) {
+        rank.assign(N + 9, 0);   // Inicializa o vetor de rank com zeros, com tamanho N+9
+        parent.assign(N + 9, 0); // Inicializa o vetor de pais com zeros, com tamanho N+9
+        for (int i = 0; i < N; i++) parent[i] = i;  // Cada elemento é seu próprio pai (representante do conjunto)
+    }
+
+    // Função para encontrar o pai de um elemento 'i'
+    int find(int i) {
+        while(i != parent[i]) i = parent[i];  // Segue o caminho até encontrar o representante
+        return i;  // Retorna o representante do conjunto ao qual 'i' pertence
+    }
+
+    // Verifica se os elementos 'i' e 'j' pertencem ao mesmo conjunto
+    bool isSameSet(int i, int j) {
+        return find(i) == find(j);  // Retorna true se ambos tiverem o mesmo representante
+    }
+
+    // Função para unir os conjuntos que contêm os elementos 'i' e 'j'
+    void unionSet(int i, int j) {
+        if (isSameSet(i, j)) return;  // Se já pertencem ao mesmo conjunto, não faz nada
+        int x = find(i), y = find(j); // Encontra os representantes dos conjuntos de 'i' e 'j'
+
+        // Realiza a união com base no rank (técnica de union by rank)
+        if (rank[x] > rank[y]) parent[y] = x;  // Se o rank de 'x' é maior, 'x' se torna o pai de 'y'
+        else {
+            parent[x] = y;  // Caso contrário, 'y' se torna o pai de 'x'
+            if (rank[x] == rank[y]) rank[y]++;  // Se os ranks eram iguais, incrementa o rank de 'y'
+        }
+    }
 };
+
 
 typedef pair<int, int> ii;
 typedef long long ll;
 
 
 ll kruskal() {
-	ll cost = 0;
-	UnionFind UF(n_vertices);
-	pair<int, ii> edge;
-	sort(edgeList.begin(), edgeList.end());
-	for (int i = 0; i < n_arestas; i++) {
-		edge = edgeList[i];
-		if (!UF.isSameSet(edge.second.first, edge.second.second)) { 
-			cost += edge.first;
-			UF.unionSet(edge.second.first, edge.second.second);
-		}
-	}
-	return cost;
+    ll cost = 0;  // Inicializa o custo total da árvore geradora mínima (MST) como 0
+    UnionFind UF(n_vertices);  // Cria uma estrutura de Union-Find para gerenciar os conjuntos de vértices
+    pair<int, ii> edge;  // Define uma variável para armazenar uma aresta (peso, vértice 1, vértice 2)
+
+    // Ordena a lista de arestas em ordem crescente com base no peso
+    sort(edgeList.begin(), edgeList.end());
+
+    // Itera sobre todas as arestas do grafo
+    for (int i = 0; i < n_arestas; i++) {
+        edge = edgeList[i];  // Obtém a i-ésima aresta da lista de arestas
+
+        // Verifica se os dois vértices da aresta estão em conjuntos diferentes
+        if (!UF.isSameSet(edge.second.first, edge.second.second)) { 
+            cost += edge.first;  // Adiciona o peso da aresta ao custo total
+            UF.unionSet(edge.second.first, edge.second.second);  // Une os conjuntos dos dois vértices
+        }
+    }
+
+    return cost;  // Retorna o custo total da árvore geradora mínima
 }
 
-vector<int> toposort;	//Ordem reversa!
 
+vector<int> toposort;  // Vetor que armazenará a ordem topológica dos vértices (em ordem reversa)
+
+// Função recursiva para realizar a ordenação topológica
 void topo(int u) {
-	vis[u] = true;
-	for (int j = 0, v; j < (int)lista_adj[u].size(); j++) {
-		v = lista_adj[u][j].first;
-		if (!vis[v]) topo(v);
-	}
-	toposort.push_back(u);
+    vis[u] = true;  // Marca o vértice 'u' como visitado
+
+    // Itera sobre todos os vértices adjacentes a 'u'
+    for (int j = 0, v; j < (int)lista_adj[u].size(); j++) {
+        v = lista_adj[u][j].first;  // Obtém o vértice adjacente 'v'
+        
+        // Se o vértice 'v' ainda não foi visitado, chama a função topo para ele
+        if (!vis[v]) topo(v);
+    }
+
+    // Após visitar todos os vértices adjacentes, adiciona 'u' ao vetor de ordenação topológica
+    toposort.push_back(u);
+
+    // Opcional: Imprime o vértice 'u' (na ordem de processamento, que será a ordem inversa da ordem topológica)
     cout << u << " "; 
 }
 
+
 void topologicalsort() {
+    // Inicializa o vetor 'vis' com zeros, marcando todos os vértices como não visitados
     vis.assign(n_vertices, 0);
+    
+    // Percorre todos os vértices do grafo
     for (int i = 0; i < n_vertices; ++i) {
+        // Se o vértice 'i' não foi visitado, chama a função 'topo' para ele
         if (!vis[i]) {
             topo(i);
         }
     }
+    
+    // Imprime uma nova linha após a execução da ordenação topológica
     cout << endl;
 }
+
 
 #define INF 0x3f3f3f3f
 
 int dijkstra(int s, int t) {
+    // Inicializa o vetor de distâncias com infinito para todos os vértices
     vector<int> dist(n_vertices, INF);
-	set<ii> pq;
-	dist[s] = 0;
-	pq.insert(ii(0, s));
-	while(!pq.empty()) {
-		int u = pq.begin()->second;
-		pq.erase(pq.begin());
-		for(int i=0; i<(int)lista_adj[u].size(); i++) {
-			int v = lista_adj[u][i].first;
-			int w = lista_adj[u][i].second.first;
-			if (dist[v] > dist[u] + w) {
-				pq.erase(ii(dist[v], v));
-				dist[v] = dist[u] + w;
-				pq.insert(ii(dist[v], v));
-			}
-		}
-	}
-	return dist[t];
+
+    // Cria uma fila de prioridade para gerenciar os vértices a serem processados
+    set<ii> pq;
+
+    // Define a distância do vértice de origem 's' como 0
+    dist[s] = 0;
+
+    // Adiciona o vértice de origem à fila de prioridade com distância 0
+    pq.insert(ii(0, s));
+
+    // Executa o algoritmo de Dijkstra
+    while(!pq.empty()) {
+        // Obtém o vértice com a menor distância da fila de prioridade
+        int u = pq.begin()->second;
+        pq.erase(pq.begin());
+
+        // Itera sobre todos os vértices adjacentes a 'u'
+        for(int i = 0; i < (int)lista_adj[u].size(); i++) {
+            int v = lista_adj[u][i].first;  // Vértice adjacente
+            int w = lista_adj[u][i].second.first;  // Peso da aresta para o vértice 'v'
+
+            // Se encontrar uma distância menor para 'v', atualiza a distância e ajusta a fila de prioridade
+            if (dist[v] > dist[u] + w) {
+                // Remove a entrada antiga para o vértice 'v' da fila de prioridade
+                pq.erase(ii(dist[v], v));
+                // Atualiza a distância para o vértice 'v'
+                dist[v] = dist[u] + w;
+                // Adiciona o vértice 'v' atualizado à fila de prioridade
+                pq.insert(ii(dist[v], v));
+            }
+        }
+    }
+
+    // Retorna a menor distância do vértice de origem 's' ao vértice destino 't'
+    return dist[t];
 }
 
 
-// vector<vector<int>> capacidade;
-
 int bfs(int s, int t, vector<int>& parent) {
+    // Inicializa o vetor 'parent' com -1, indicando que nenhum vértice foi visitado
     fill(parent.begin(), parent.end(), -1);
+
+    // Marca o vértice de origem 's' com -2 para indicar que é o ponto de partida
     parent[s] = -2;
+
+    // Cria uma fila para a busca em largura (BFS) e insere o vértice de origem 's' com fluxo infinito
     queue<pair<int, int>> q;
     q.push({s, INF});
 
+    // Executa o BFS
     while (!q.empty()) {
+        // Obtém o vértice atual e o fluxo atual da frente da fila
         int atual = q.front().first;
         int fluxo = q.front().second;
         q.pop();
 
+        // Itera sobre todos os vértices adjacentes ao vértice atual
         for (auto vertice : lista_adj[atual]) {
-            int prox = vertice.first;
+            int prox = vertice.first;  // Próximo vértice
+            // Verifica se o próximo vértice ainda não foi visitado e se há capacidade restante
             if (parent[prox] == -1 && capacidade[atual][prox]) {
+                // Atualiza o pai do próximo vértice e calcula o novo fluxo
                 parent[prox] = atual;
                 int novo_fluxo = min(fluxo, capacidade[atual][prox]);
+                // Se o próximo vértice é o destino 't', retorna o novo fluxo
                 if (prox == t)
                     return novo_fluxo;
+                // Caso contrário, insere o próximo vértice na fila com o novo fluxo
                 q.push({prox, novo_fluxo});
             }
         }
     }
 
+    // Se o destino 't' não for alcançado, retorna 0
     return 0;
 }
 
-int maxflow(int s, int t) {
-    int fluxo = 0;
-    vector<int> parent(n_vertices);
-    int novo_fluxo;
 
+int maxflow(int s, int t) {
+    int fluxo = 0;  // Inicializa o fluxo total como 0
+    vector<int> parent(n_vertices);  // Vetor para armazenar o caminho encontrado pelo BFS
+    int novo_fluxo;  // Variável para armazenar o fluxo encontrado na iteração do BFS
+
+    // Enquanto houver um caminho de fluxo disponível do vértice 's' ao vértice 't'
     while (novo_fluxo = bfs(s, t, parent)) {
-        fluxo += novo_fluxo;
-        int atual = t;
+        fluxo += novo_fluxo;  // Adiciona o fluxo encontrado ao fluxo total
+
+        int atual = t;  // Começa do vértice de destino 't'
+        // Atualiza as capacidades das arestas no caminho encontrado
         while (atual != s) {
-            int anterior = parent[atual];
+            int anterior = parent[atual];  // Obtém o vértice anterior no caminho
+            // Reduz a capacidade da aresta no sentido de 'anterior' para 'atual'
             capacidade[anterior][atual] -= novo_fluxo;
+            // Aumenta a capacidade da aresta no sentido oposto ('atual' para 'anterior')
             capacidade[atual][anterior] += novo_fluxo;
-            atual = anterior;
+            atual = anterior;  // Move para o vértice anterior no caminho
         }
     }
 
-    return fluxo;
+    return fluxo;  // Retorna o fluxo máximo encontrado
 }
 
+
 void fecho() {
+    // Inicializa o vetor 'visitado' com 0, indicando que nenhum vértice foi visitado
     visitado.assign(n_vertices, 0);
+    
+    // Executa a busca em profundidade (DFS) a partir do vértice 0
+    // O segundo parâmetro 'true' pode indicar que a DFS deve imprimir os vértices visitados ou realizar outra ação específica
     dfs(0, true);
+    
+    // Imprime uma nova linha após a execução da DFS
     cout << endl;
 }
+
 
 int main () {
 
@@ -550,23 +670,34 @@ int main () {
     
 
     //controle para saber se eh direcionado ou nao
-    if (direcionado.compare("direcionado") == 0) {
-        b_direcionado = DIRECIONADO;
-        leitura_direcionado();
+    if (direcionado.compare("direcionado") == 0)
+    {
+        // Se o tipo de grafo é "direcionado"
+        b_direcionado = DIRECIONADO; // Define a variável 'b_direcionado' para o valor correspondente a grafo direcionado
+        leitura_direcionado();       // Chama a função para ler os dados de um grafo direcionado
     }
-    else {
-        b_direcionado = NAO_DIRECIONADO;
-        leitura_nao_direcionado();
+    else
+    {
+        // Se o tipo de grafo não é "direcionado" (assumindo que é "não direcionado")
+        b_direcionado = NAO_DIRECIONADO; // Define a variável 'b_direcionado' para o valor correspondente a grafo não direcionado
+        leitura_nao_direcionado();       // Chama a função para ler os dados de um grafo não direcionado
     }
 
-    //ordenando os vertices vizinhos de cada vertice
-    for (int i = 0; i < n_vertices; ++i) sort(lista_adj[i].begin(), lista_adj[i].end());
+    // Ordena os vértices vizinhos de cada vértice
+    for (int i = 0; i < n_vertices; ++i)
+    {
+        sort(lista_adj[i].begin(), lista_adj[i].end()); // Ordena a lista de adjacências para o vértice 'i'
+    }
 
-    for (int i = 0; i < funcoes.size(); ++i) {
-        // cout << "f: " <<  funcoes[i] << endl; //apagar futuramente
-        //funcoes indexadas em 0, assim como nos casos
+    // Processa as funções especificadas
+    for (int i = 0; i < funcoes.size(); ++i)
+    {
+        // cout << "f: " <<  funcoes[i] << endl; // Comentado para depuração futura, exibe a função atual sendo processada
+
+        // As funções são indexadas a partir de 0
         switch (funcoes[i])
         {
+            {
             case 0:
                 cout << conexo() << endl;
                 break;
@@ -653,4 +784,4 @@ int main () {
         }
     }
     return 0;
-}
+    }
