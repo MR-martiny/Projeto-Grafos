@@ -692,7 +692,6 @@ int main () {
     // Processa as funções especificadas
     for (int i = 0; i < funcoes.size(); ++i)
     {
-        // cout << "f: " <<  funcoes[i] << endl; // Comentado para depuração futura, exibe a função atual sendo processada
 
         // As funções são indexadas a partir de 0
         switch (funcoes[i])
