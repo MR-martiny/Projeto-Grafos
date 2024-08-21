@@ -221,18 +221,29 @@ int parent = 0, numSCC;
 vector<int>comp, ts;
 
 void revdfs(int u) {
+    // Marca o vértice 'u' como visitado.
     vis[u] = true;
+    
+    // Itera sobre todos os vértices adjacentes a 'u' no grafo transposto.
     for(int i = 0, v; i < (int)lista_adj_rev[u].size(); i++) {
-    	v = lista_adj_rev[u][i].first;
+        v = lista_adj_rev[u][i].first;
+        // Se o vértice 'v' ainda não foi visitado, realiza uma chamada recursiva para 'revdfs(v)'.
         if(!vis[v]) revdfs(v);
     }
+    
+    // Após visitar todos os vértices adjacentes, adiciona 'u' à lista de tempos de finalização.
     ts.push_back(u);
 }
 
 void dfs(int u) {
-    vis[u] = true; comp[u] = parent;
+    // Marca o vértice 'u' como visitado e define seu componente como 'parent'.
+    vis[u] = true;
+    comp[u] = parent;
+    
+    // Itera sobre todos os vértices adjacentes a 'u' no grafo original.
     for(int i = 0, v; i < (int)lista_adj[u].size(); i++) {
-    	v = lista_adj[u][i].first;
+        v = lista_adj[u][i].first;
+        // Se o vértice 'v' ainda não foi visitado, realiza uma chamada recursiva para 'dfs(v)'.
         if(!vis[v]) dfs(v);
     }
 }
@@ -247,19 +258,22 @@ void kosaraju() {
     
     // Realiza a primeira etapa de Kosaraju: DFS no grafo original para preencher a ordem de finalização dos vértices.
     for (int i = 0; i < n_vertices; i++) {
+        // Se o vértice 'i' ainda não foi visitado, realiza uma chamada para 'revdfs(i)'.
         if (!vis[i]) {
             revdfs(i);
         }
     }
     
-    // Reinicializa o vetor 'vis' para a segunda etapa.
+    // Reinicializa o vetor 'vis' para a segunda etapa do algoritmo.
     fill(vis.begin(), vis.end(), 0);
     
     // Inicializa o contador de componentes fortemente conexos (SCC).
     numSCC = 0;
     
     // Realiza a segunda etapa de Kosaraju: DFS no grafo transposto (invertido) na ordem de finalização dos vértices.
+    // Itera na ordem inversa dos tempos de finalização dos vértices.
     for (int i = n_vertices - 1; i >= 0; i--) {
+        // Se o vértice 'ts[i]' ainda não foi visitado, realiza uma chamada para 'dfs(ts[i])' e define 'parent' como o vértice atual.
         if (!vis[ts[i]]) {
             parent = ts[i];
             dfs(ts[i]);
@@ -267,6 +281,7 @@ void kosaraju() {
         }
     }
 }
+
 
 
 int counter, rootChildren, root, temArticulacao;
